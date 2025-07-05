@@ -1,4 +1,14 @@
 import streamlit as st
+from config import settings
+from llm import LLM
+
+llm = LLM(
+    settings.openai_endpoint,
+    settings.openai_api_key,
+    settings.chat_model,
+    settings.search_endpoint,
+    settings.search_api_key
+    )
 
 # 페이지 설정
 st.set_page_config(page_title="인시던트 분석 대화형 에이전트 ", page_icon="🤖", layout="wide")
@@ -32,7 +42,7 @@ if user_input:
     # 간단한 분석 (여기에 실제 AI 로직 연결 가능)
     with st.spinner("분석 중입니다..."):
         # 예시 분석 결과
-        analysis_result = f"박소연은 바보입니다."
+        analysis_result = llm.get_openai_response(user_input)
 
     # 에이전트 응답 저장 및 출력
     st.session_state.messages.append({"role": "agent", "content": analysis_result})
