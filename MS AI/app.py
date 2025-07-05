@@ -7,7 +7,8 @@ llm = LLM(
     settings.openai_api_key,
     settings.chat_model,
     settings.search_endpoint,
-    settings.search_api_key
+    settings.search_api_key,
+    settings.index_name
     )
 
 # 페이지 설정
@@ -22,7 +23,7 @@ if "messages" not in st.session_state:
 
 # 초기 환영 메시지
 if not st.session_state.messages:
-    st.session_state.messages.append({"role": "agent", "content": "안녕하세요! 인시던트 분석 에이전트입니다."})
+    st.session_state.messages.append({"role": "assistant", "content": "안녕하세요! 인시던트 분석 에이전트입니다."})
 
 # 기존 메시지 출력
 for message in st.session_state.messages:
@@ -35,17 +36,23 @@ for message in st.session_state.messages:
 user_input = st.chat_input("내용을 입력하세요")
 
 if user_input:
-    # 사용자 메시지 저장 및 출력
     st.session_state.messages.append({"role": "user", "content": user_input})
     st.chat_message("user").markdown(user_input)
 
-    # 간단한 분석 (여기에 실제 AI 로직 연결 가능)
-    with st.spinner("분석 중입니다..."):
-        # 예시 분석 결과
-        analysis_result = llm.get_openai_response(user_input)
+    def extract_last_user_message(messages):
+        for m in reversed(messages):
+            if m.get("role") == "user" and m.get("content"):
+                return m["content"]
+        return ""
 
-    # 에이전트 응답 저장 및 출력
-    st.session_state.messages.append({"role": "agent", "content": analysis_result})
+    with st.spinner("분석 중입니다..."):
+        try:
+            user_query = extract_last_user_message(st.session_state.messages)
+            analysis_result = llm.get_openai_response(user_query)
+        except Exception as e:
+            analysis_result = f"❌ 에러 발생: {e}"
+
+    st.session_state.messages.append({"role": "assistant", "content": analysis_result})
     st.chat_message("assistant").markdown(analysis_result)
 
 # 하단 정보
