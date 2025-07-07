@@ -12,6 +12,12 @@ class LLM:
         self.search_endpoint = search_endpoint
         self.search_api_key = search_api_key
         self.index_name = index_name
+
+         # prompt.md 파일 읽어서 self.prompt_text에 저장
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompt.md")
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            self.prompt_text = f.read()
+
     def get_openai_response(self, query: str):
         try:
             rag_params = {
@@ -29,11 +35,16 @@ class LLM:
                     }
                 ]
             }
+             # system 메시지와 user 메시지 실제 값 출력
+            print("=== OpenAI 호출 system 메시지 ===")
+            print(self.prompt_text)
+            print("=== OpenAI 호출 user 메시지 ===")
+            print(query)
 
             response = self.chat_client.chat.completions.create(
                 model=self.chat_model,
                 messages=[
-                    {"role": "system", "content": "당신은 인시던트 분석 에이전트입니다. 사용자의 질문에 대해 정확하고 유용한 답변을 제공하세요."},
+                    {"role": "system", "content": f"{self.prompt_text}"},
                     {"role": "user", "content": query}
                 ],
                 max_tokens=1000,
